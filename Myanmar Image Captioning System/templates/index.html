@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #044657;
+            color: #495057;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .container {
+            background-color: #edf6fd;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #000a14;
+            animation: fadeIn 1s ease-in-out;
+            font-feature-settings: "abvs";
+            font-family: 'Times New Roman', serif;
+            font-weight: 500;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            color: #007bff;
+        }
+
+        .form-control-file {
+            color: #007bff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            animation: fadeIn 1s ease-in-out;
+            font-family: 'Times New Roman', serif;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 3px solid black;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out, scaleImage 0.5s ease-in-out;
+            transform: rotate3d(45);
+        }
+
+        img:hover {
+            transform: scale(1.1) translate(0, -5px);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        p {
+            margin-top: 20px;
+            animation: fadeIn 1s ease-in-out;
+            font-style: inherit;
+            font-weight: bold;
+            font-family: 'Pyidaungsu', sans-serif;
+            font-size: large;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleImage {
+            0% {
+                transform: scale(0.8);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .btn-bottom {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 1rem;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            animation: slideIn 1s ease-in-out;
+        }
+
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .caption-container {
+            background-color: rgb(159, 198, 252);
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            font-size: xx-large;
+        }
+
+        .uploaded-image-container {
+            background-color: hsl(237, 87%, 85%);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: none;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <title>Myanmar Image Captioning System</title>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 header">Myanmar Image Captioning System</h1>
+
+        <form method="post" enctype="multipart/form-data" id="captionForm" onsubmit="return validateForm()">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="image">Upload Image:</label>
+                {{ form.image(class="form-control-file", id="uploadedImage", onchange="previewImage(this)") }}
+            </div>
+            <div id="loading">
+                <img src="{{ url_for('static', filename='loading.gif') }}" alt="Loading..." />
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-bottom" onclick="showLoading()">Generate
+                    Caption</button>
+            </div>
+        </form>
+
+        <div id="error-message" class="alert alert-danger mt-3" style="display:none;"></div>
+
+        <div id="uploadedImageContainer" class="uploaded-image-container">
+            <h5 class="text-center">Image Uploaded</h5>
+            <div class="d-flex justify-content-center">
+                <img id="imagePreview" alt="Uploaded Image" class="img-fluid">
+            </div>
+        </div>
+
+        {% if image_path %}
+        <div class="d-flex justify-content-center">
+            <div class="image-container mt-4"
+                style="background-color: hsl(237, 87%, 85%); padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+                <img src="{{ url_for('uploaded_file', filename=os.path.basename(image_path)) }}" alt="Uploaded Image"
+                    class="img-fluid">
+            </div>
+        </div>
+        <div class="caption-container mt-4 text-center">
+            {% if caption %}
+            <p class="mt-3"><strong>Caption:</strong> {{ caption }}</p>
+            {% else %}
+            <p class="mt-3 text-danger"><strong>Error:</strong> Caption generation failed.</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- Remove the "No image uploaded" container -->
+        {% endif %}
+
+        <div class="sample-pictures">
+            <h5 class="text-center mb-4">Understand Your Scene With My Website</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <img src="{{ url_for('static', filename='image.jpg') }}" alt="Sample Image 1" class="sample-image">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <img src="{{ url_for('static', filename='image1.jpg') }}" alt="Sample Image 2" class="sample-image">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <img src="{{ url_for('static', filename='image2.jpg') }}" alt="Sample Image 3" class="sample-image">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <img src="{{ url_for('static', filename='image3.jpg') }}" alt="Sample Image 4" class="sample-image">
+                </div>
+            </div>
+            <!--h5 class="text-center mb-4" style="font-family: 'Pyidaungsu', sans-serif;">ဥပမာ ပုံရိပ်များ</h5-->
+
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function validateForm() {
+            var fileInput = document.getElementById('uploadedImage');
+            var errorMessage = document.getElementById('error-message');
+
+            if (fileInput.files.length === 0) {
+                errorMessage.innerHTML = 'Caption Generate မလုပ်မှီ ပုံရွေးပေးရန် လိုအပ်ပါသည်။';
+                errorMessage.style.display = 'block';
+                errorMessage.style.fontFamily = "'Pyidaungsu', sans-serif";
+                // Display the error message for 2 seconds
+                setTimeout(function () {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+                return false;
+            } else {
+                errorMessage.style.display = 'none';
+                // Hide previous image and caption
+                document.getElementById('uploadedImageContainer').style.display = 'none';
+                document.getElementById('caption-container').style.display = 'none';
+                return true;
+            }
+        }
+
+        function showLoading() {
+            if (validateForm()) {
+                $('#loading').show();
+                $('#captionForm').hide();
+            }
+        }
+
+        function previewImage(input) {
+            var imagePreview = document.getElementById('imagePreview');
+            var uploadedImageContainer = document.getElementById('uploadedImageContainer');
+            var noImageText = document.getElementById('no-image-text');
+
+            // Clear previous image
+            imagePreview.src = '';
+            uploadedImageContainer.style.display = 'none';
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    uploadedImageContainer.style.display = 'block';
+                    noImageText.style.display = 'none'; // Hide the "No image uploaded" text
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>

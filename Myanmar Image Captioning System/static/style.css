@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'Pyidaungsu';
+    src: url('path/to/pyidaungsu.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+p {
+    margin-top: 20px;
+    animation: fadeIn 1s ease-in-out;
+    font-style: inherit;
+    font-weight: bold;
+    font-family: 'Pyidaungsu', sans-serif; /* Use Pyidaungsu font or replace with your preferred font */
+}
